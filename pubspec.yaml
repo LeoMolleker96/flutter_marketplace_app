@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.12.2
+  sdk: ^3.13.4
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -50,7 +50,7 @@ dev_dependencies:
 
   # Code generation for @riverpod. Run `fvm dart run build_runner watch -d`
   # while working; generated .g.dart files are committed.
-  build_runner: ^2.15.1
+  build_runner: ^2.16.1
   riverpod_generator: ^4.0.9
 
   # Test fakes. Chosen over mockito to avoid a second code generator.

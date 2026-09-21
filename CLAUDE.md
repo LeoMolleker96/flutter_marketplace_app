@@ -36,7 +36,7 @@ This contract intentionally overrides the usual defaults of writing minimal comm
 | Tool | Pinned version |
 |---|---|
 | Flutter | **3.47.5** (stable) |
-| Dart | whatever ships with that Flutter — never install Dart separately |
+| Dart | **3.13.4** — ships with that Flutter; never install Dart separately |
 | Version manager | **FVM** (`fvm` 4.1.2) |
 
 The SDK is managed by FVM, **not** by a system-wide Flutter install. Consequences:
@@ -52,7 +52,7 @@ fvm install 3.47.5
 fvm use 3.47.5
 ```
 
-> **Current state (2026-09-21):** the local machine still has **3.44.8 / Dart 3.12.2** installed and set as the FVM global. Run the two commands above to reach the pinned version; `fvm use` writes `.fvmrc`, which pins the project regardless of the global setting. Until then, the toolchain does not match this document.
+> `fvm use` writes `.fvmrc`. **Commit it** — it pins the project regardless of what the FVM global is set to, so a fresh clone only needs `fvm install`.
 
 ### Commands
 
@@ -86,9 +86,9 @@ The app grows through these milestones. Each is a git tag.
 >
 > Riverpod dependencies are installed, but **no Riverpod code exists yet** — nothing has run through `build_runner`, and there is no `data/` or `domain/` code.
 >
-> Built: the design system in `core/` (colours, type scale, `context.colors` / `context.textStyles`, and the `AppTextField` / `AppCheckbox` / `AppPrimaryButton` / `AppTitle` / `AppSubtitle` / `AppFootnote` widgets), `go_router` with the login screen at `/`, and `LoginView` — presentation only, no behaviour behind the buttons.
+> Built: the design system in `core/` (colours, type scale, spacing and radius tokens, `context.colors` / `context.textStyles`, and the `AppTextField` / `AppCheckbox` / `AppPrimaryButton` / `AppTitle` / `AppSubtitle` / `AppFootnote` widgets), `go_router` with `LoginView` at `/` and a `ListingsView` placeholder at `/listings`, and 45 tests. Presentation only — no behaviour behind the buttons.
 >
-> Requires `assets/fonts/PlusJakartaSans-{Regular,SemiBold,Bold,ExtraBold}.ttf` to build.
+> Plus Jakarta Sans is bundled in `assets/fonts/` and committed, so a clone builds without extra setup.
 >
 > *Each session that completes a milestone must update this line.*
 
@@ -326,7 +326,7 @@ Nothing beyond the Flutter SDK is installed yet. The intended stack, with versio
 |---|---|---|---|
 | `flutter_riverpod` | 3.4.3 | v0.1 | state management + DI |
 | `riverpod_annotation` / `riverpod_generator` | 4.0.9 | v0.1 | `@riverpod` code generation |
-| `build_runner` | latest | v0.1 | code generation runner |
+| `build_runner` | 2.16.1 | v0.1 | code generation runner |
 | `very_good_analysis` | 11.0.0 | v0.1 | stricter lints (replaces `flutter_lints`) |
 | `freezed` | 4.0.2 | v0.2 | immutable models + unions |
 | `go_router` | 18.0.1 | v0.2 | declarative routing |
