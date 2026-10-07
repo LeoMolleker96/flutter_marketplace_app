@@ -23,6 +23,7 @@ This repo deliberately trades speed for understanding. In this project you must:
 - **Teach, don't just deliver.** Explain the concept before or while writing the code that uses it. A correct implementation the owner cannot explain back is a failed change.
 - **Compare to Bloc when it clarifies.** The owner's mental model is Bloc; use it as the bridge (see the translation table in §5).
 - **Do exactly what was asked — nothing more.** "Create the folders" means create the folders, not the code that will live in them. Finish the request, then stop and say what the obvious next step would be. Scope creep is not generosity here: unrequested code has to be read, judged, and usually deleted, and it takes the learning away from the owner.
+- **Git is covered by that rule.** Do not create branches, commit, merge, push, tag, or open pull requests unless asked, and never as a "helpful" way to organise work. Stay on the current branch and leave changes uncommitted. A good-sounding reason to deviate ("the PR is already open, so a separate branch is cleaner") is a question to ask, not a decision to take.
 - **Work in small, reviewable steps.** One concept at a time. Never dump a large multi-file implementation in a single pass.
 - **Ask before adding any dependency.** Every package is an architectural decision and needs an ADR (§9).
 - **Never silently "fix" architecture violations.** Point them out and explain why they violate the rules in §4.
@@ -56,13 +57,19 @@ fvm use 3.47.5
 
 ### Commands
 
+The repository is a **Melos workspace** (§4). Run everything from the **repository root**. Melos is a dev dependency, not a global tool, so it is invoked through `fvm dart run`.
+
 | Purpose | Command |
 |---|---|
-| Static analysis | `fvm flutter analyze` |
-| Run tests | `fvm flutter test` |
-| Format | `fvm dart format .` |
-| Code generation (one-off) | `fvm dart run build_runner build --delete-conflicting-outputs` |
-| Code generation (while working) | `fvm dart run build_runner watch --delete-conflicting-outputs` |
+| Resolve dependencies (all packages) | `fvm flutter pub get` |
+| Static analysis, every package | `fvm dart run melos run analyze` |
+| Tests, every package | `fvm dart run melos run test` |
+| Format | `fvm dart run melos run format` |
+| Code generation, every package that uses it | `fvm dart run melos run codegen` |
+| List the workspace's packages | `fvm dart run melos list` |
+| Run the app (web) | `cd apps/marketplace_app` then `fvm flutter run -d web-server` |
+
+One package only: `cd` into it and use `fvm flutter analyze` / `fvm flutter test` as usual.
 
 Code generation is **mandatory** after any change to a `@riverpod` or `@freezed` annotation — generated `.g.dart` / `.freezed.dart` files are committed.
 
@@ -79,16 +86,16 @@ The app grows through these milestones. Each is a git tag.
 | `v0.3` | Cart, favorites, checkout flow | derived providers, invalidation, mutations, first full test suite |
 | `v0.4` | **Refactor** all features onto the layering in §4 | repository pattern, use-cases, refactoring live code |
 | `v0.5` | Offline-cached listings + local-first chat | local database, sync, conflict resolution, offline persistence |
-| `v0.6` | Split into packages (melos), design-system package, flavors | module boundaries, monorepo, environments |
+| `v0.6` | Flavors and environments; split large features' layers into packages if warranted | environments, release configuration |
 | `v0.7` | CI, golden/integration tests, crash reporting, secure storage | production hardening, release engineering |
 
 > **Current milestone: `v0.1`, starting — UI first.**
 >
 > Riverpod dependencies are installed, but **no Riverpod code exists yet** — nothing has run through `build_runner`, and there is no `data/` or `domain/` code.
 >
-> Built: the design system in `core/` (colours, type scale, spacing and radius tokens, `context.colors` / `context.textStyles`, and the `AppTextField` / `AppCheckbox` / `AppPrimaryButton` / `AppTitle` / `AppSubtitle` / `AppFootnote` widgets), `go_router` with `LoginView` at `/` and a `ListingsView` placeholder at `/listings`, and 45 tests. Presentation only — no behaviour behind the buttons.
+> Built: the repository is a **Melos workspace** (ADR-0003) of four packages — `design_system` (colours, type scale, spacing and radius tokens, `context.colors` / `context.textStyles`, the `App*` widgets, and the bundled font), `feature_auth` (`LoginView`), `feature_listings` (a `ListingsView` placeholder) and the `marketplace_app` shell that owns the `go_router` routes — with 48 tests. Presentation only — no behaviour behind the buttons.
 >
-> Plus Jakarta Sans is bundled in `assets/fonts/` and committed, so a clone builds without extra setup.
+> Plus Jakarta Sans lives in `packages/design_system/assets/fonts/` and is committed, so a clone builds without extra setup.
 >
 > *Each session that completes a milestone must update this line.*
 
@@ -96,17 +103,35 @@ The app grows through these milestones. Each is a git tag.
 
 ## 4. Architecture
 
-**Feature-first folders, Clean Architecture layers, Flutter's official component names** (views, view models, repositories, services).
+**A modular monolith: one repository, one Melos workspace, one package per feature** (ADR-0003). Inside each feature, Clean Architecture layers with Flutter's official component names (views, view models, repositories, services).
 
 ```
-lib/
-  core/                      # cross-feature only: theme, router, errors, extensions, shared widgets
-  features/
-    <feature>/
-      data/                  # DTOs, services, repository implementations
-      domain/                # entities, repository interfaces, use-cases
-      presentation/          # views (widgets) + view models (Riverpod notifiers)
+pubspec.yaml                  # workspace root: package list + Melos scripts; no code
+apps/
+  marketplace_app/            # the app shell: main, router, platform folders (android/ ios/ web/)
+packages/
+  design_system/              # theme, tokens, shared widgets, the typeface
+features/
+  <feature>/                  # one package per feature, named feature_<feature>
+    lib/
+      feature_<feature>.dart  # the package's only public entry point (a barrel)
+      src/
+        data/                 # DTOs, services, repository implementations
+        domain/               # entities, repository interfaces, use-cases
+        presentation/         # views (widgets) + view models (Riverpod notifiers)
+    test/                     # mirrors lib/src
 ```
+
+### Package rules (non-negotiable)
+
+A package can only import what its own `pubspec.yaml` declares, so these rules are enforced by pub, not by review:
+
+- **A feature never depends on another feature.** If two features need the same thing, it moves down into a shared package (`design_system`, or a new one) — it is never imported sideways.
+- **Features depend on `design_system` and shared packages only.** Nothing depends on the app shell.
+- **The app shell owns all routing.** Features expose *screens* and take callbacks (`LoginView(onLoggedIn: ...)`); only the shell knows that signing in leads to the listings. Features have no `go_router` dependency.
+- **Each package exposes one barrel file and keeps the rest under `src/`.** Importing another package's `src/` is a violation even though Dart allows it.
+- **Assets belong to the package that declares them.** The typeface ships in `design_system`, so every `TextStyle` names it through `AppTypography.fontPackage`; without that Flutter silently falls back to the system font.
+- **A new feature is a new package**: add it to the `workspace:` list in the root `pubspec.yaml`, give it `resolution: workspace`, and an `analysis_options.yaml` that includes `../../analysis_options.yaml`.
 
 ### Component responsibilities
 
@@ -116,7 +141,9 @@ lib/
 - **Service** — the lowest layer, wrapping one external source (REST endpoint, local database, platform API). **Stateless**; exposes only `Future`/`Stream`.
 - **Use-case** — a single business operation. Added *only* when logic spans repositories, is genuinely complex, or is reused by several view models. Not one per repository method.
 
-### Dependency rules (non-negotiable)
+### Layer rules inside a feature (non-negotiable)
+
+These are still enforced by convention and review — folders are not package boundaries.
 
 - `presentation` → `domain` only. **It must never import `data`.**
 - `data` → `domain` (it implements the interfaces declared there). It must never import `presentation`.
@@ -252,7 +279,8 @@ Both unit and UI tests are required. A feature is not done without them.
 - **Unit tests** — every view model, use-case, and repository.
 - **Widget tests** — every view, at **at least compact and expanded widths** (§6). A single-width widget test does not prove a responsive view works.
 - **Golden tests** — from `v0.7`, one golden per breakpoint the view actually changes at.
-- `test/` **mirrors `lib/` exactly**.
+- Within each package, `test/` **mirrors `lib/` exactly**, and **a package tests itself**: a feature's tests live in the feature, never in the app. The one thing the app tests is the wiring only it owns — that the route table connects the screens (`apps/marketplace_app/test/router/`).
+- A package that needs `pumpApp` keeps its own small copy in `test/helpers/`. Sharing one would need a package of its own, which is more machinery than ~20 lines.
 - Fakes use **`mocktail`** (no code-generated mocks — one code generator is enough).
 
 Set the window size in a widget test through the test view, and always reset it:
@@ -320,10 +348,11 @@ An Architecture Decision Record for every significant decision — dependencies,
 
 ## 11. Dependencies
 
-Nothing beyond the Flutter SDK is installed yet. The intended stack, with versions verified on 2026-09-21:
+Versions verified on 2026-09-21 (Melos on 2026-10-07). **Installed so far:** `flutter_riverpod`, `riverpod_annotation`, `riverpod_generator`, `build_runner`, `go_router`, `mocktail`, `melos`. The rest are planned. Dependencies are declared in the package that uses them, not in the workspace root — the root holds only `melos`.
 
 | Package | Version | Milestone | Purpose |
 |---|---|---|---|
+| `melos` | 8.9.0 | v0.1 | workspace scripts and package filtering, on top of pub workspaces |
 | `flutter_riverpod` | 3.4.3 | v0.1 | state management + DI |
 | `riverpod_annotation` / `riverpod_generator` | 4.0.9 | v0.1 | `@riverpod` code generation |
 | `build_runner` | 2.16.1 | v0.1 | code generation runner |
