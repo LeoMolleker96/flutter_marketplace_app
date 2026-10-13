@@ -1,0 +1,41 @@
+name: marketplace_app
+description: "Marketplace like app used to learn riverpod state management and advanced flutter concepts."
+publish_to: 'none'
+version: 1.0.0+1
+resolution: workspace
+
+environment:
+  sdk: ^3.13.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management and dependency injection. See CLAUDE.md section 5 —
+  # Riverpod 3 only, code-generated providers, legacy APIs are banned.
+  flutter_riverpod: ^3.4.3
+  riverpod_annotation: ^4.0.7
+
+  # Declarative routing. The app shell owns every route; features never import
+  # it, so they stay unaware of each other.
+  go_router: ^18.0.1
+
+  # Workspace siblings. Resolved to the local copy; `any` because versions are
+  # not bookkept while every package lives in this repository.
+  design_system: any
+  network: any
+  feature_auth: any
+  feature_listings: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  build_runner: ^2.16.1
+  riverpod_generator: ^4.0.9
+  mocktail: ^1.0.5
+
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

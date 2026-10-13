@@ -1,0 +1,22 @@
+name: network
+description: "HTTP connectivity for the app, built on dio."
+publish_to: none
+version: 0.1.0
+resolution: workspace
+
+environment:
+  sdk: ^3.13.4
+
+dependencies:
+  dio: ^5.11.1
+
+dev_dependencies:
+  # Tests only. The package's own code stays free of Flutter; flutter_test is
+  # what the rest of the workspace already uses, and adding the `test` package
+  # would clash with the version of test_api the Flutter SDK pins.
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+  # Test doubles (CLAUDE.md section 8): mocks are written with mocktail, never by hand.
+  mocktail: ^1.0.5

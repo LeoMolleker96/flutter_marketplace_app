@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+
+  <!--
+    Content Security Policy (ADR-0011). Scripts, including CanvasKit, may only
+    come from our own origin, so a third-party script cannot read the session
+    token that lives in localStorage. `connect-src` lists the API origin; the
+    production one is added with flavors (v0.6). `frame-ancestors` is ignored in
+    a <meta> policy, so it must be an HTTP header set by the host.
+    The sha256 hash allows only the debug server's injected DWDS client script
+    (Flutter 3.47.5), see ADR-0011.
+  -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'sha256-MndvH2xoJITJx1vAmJTo0n71uGBofeMZfQTpl28Jz7s='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' http://localhost:3000; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
+
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="Marketplace like app used to learn rivepord state management and advanced flutter concepts.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="marketplace_app">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>marketplace_app</title>
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <!--
+    You can customize the "flutter_bootstrap.js" script.
+    This is useful to provide a custom configuration to the Flutter loader
+    or to give the user feedback during the initialization process.
+
+    For more details:
+    * https://docs.flutter.dev/platform-integration/web/initialization
+  -->
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

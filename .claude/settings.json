@@ -1,0 +1,31 @@
+{
+  "agent": "orchestrator",
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(fvm dart run melos run:*)",
+      "Bash(fvm flutter analyze:*)",
+      "Bash(fvm flutter test:*)",
+      "Bash(fvm dart analyze:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"%CLAUDE_PROJECT_DIR%\\.claude\\hooks\\analyze-dart.ps1\""
+          }
+        ]
+      }
+    ]
+  }
+}
