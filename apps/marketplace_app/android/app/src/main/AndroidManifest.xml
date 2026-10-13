@@ -1,8 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The app talks to a backend, so a release build needs this. Flutter's
+         debug and profile manifests add it for hot reload, which is why the
+         network worked while developing and would not in a release APK. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- allowBackup is off because flutter_secure_storage keeps its encryption key
+         in the Android Keystore, which is never backed up. Restoring a backed-up
+         copy of the encrypted data onto a new device leaves it unreadable and
+         throws InvalidKeyException. -->
     <application
         android:label="marketplace_app"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false">
         <activity
             android:name=".MainActivity"
             android:exported="true"

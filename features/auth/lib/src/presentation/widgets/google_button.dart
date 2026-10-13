@@ -1,8 +1,15 @@
-part of '../login_view.dart';
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
 
-/// Google sign-in button.
-class _GoogleButton extends StatelessWidget {
-  const _GoogleButton();
+/// "Continue with Google" button.
+///
+/// The [label] is a parameter because sign-in and sign-up word it differently.
+class GoogleButton extends StatelessWidget {
+  /// Creates the button with [label] as its text.
+  const GoogleButton(this.label, {super.key});
+
+  /// The text next to the Google mark.
+  final String label;
 
   /// Google's blue, which is fixed by their brand guidelines and therefore not
   /// a theme colour.
@@ -38,10 +45,15 @@ class _GoogleButton extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
-                Text(
-                  'Continue with Google',
-                  style: context.textStyles.labelMedium?.copyWith(
-                    color: colors.onSurface,
+                // Flexible so a long label wraps instead of overflowing the row:
+                // the Spanish wording is wider than the English one, and a
+                // narrow phone leaves the button little room.
+                Flexible(
+                  child: Text(
+                    label,
+                    style: context.textStyles.labelMedium?.copyWith(
+                      color: colors.onSurface,
+                    ),
                   ),
                 ),
               ],

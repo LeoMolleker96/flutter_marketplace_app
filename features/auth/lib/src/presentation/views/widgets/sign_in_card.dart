@@ -1,4 +1,4 @@
-part of '../login_view.dart';
+part of '../sign_in_view.dart';
 
 /// The white card holding the credentials form.
 class _SignInCard extends StatelessWidget {
@@ -9,7 +9,7 @@ class _SignInCard extends StatelessWidget {
     required this.onSubmit,
   });
 
-  /// Fired by the Log In button once both fields have content.
+  /// Fired by the Sign In button once both fields have content.
   final VoidCallback onSubmit;
 
   /// Owned by the screen, listened to only by the checkbox below.
@@ -85,16 +85,25 @@ class _SignInCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.md + AppSpacing.xs),
+          const _SignInError(),
           // Rebuilds only the button as the user types. A TextEditingController
           // is itself a Listenable, so merging the two gives the button its own
           // subscription — no setState, and the fields above are left alone.
           ListenableBuilder(
             listenable: Listenable.merge([emailController, passwordController]),
-            builder: (context, _) => AppPrimaryButton(
-              label: 'Log In',
-              enabled: emailController.text.trim().isNotEmpty &&
-                  passwordController.text.isNotEmpty,
-              onPressed: onSubmit,
+            // The Consumer watches only `isLoading`, so the controller moving
+            // between idle, loading and done rebuilds the button and nothing
+            // else — not the card, not the fields. `select` is what narrows it.
+            builder: (context, _) => Consumer(
+              builder: (context, ref, _) => AppPrimaryButton(
+                label: 'Sign In',
+                enabled: emailController.text.trim().isNotEmpty &&
+                    passwordController.text.isNotEmpty,
+                isLoading: ref.watch(
+                  signInControllerProvider.select((state) => state.isLoading),
+                ),
+                onPressed: onSubmit,
+              ),
             ),
           ),
         ],

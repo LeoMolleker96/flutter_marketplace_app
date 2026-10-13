@@ -11,6 +11,7 @@ environment:
 workspace:
   - apps/marketplace_app
   - packages/design_system
+  - packages/network
   - features/auth
   - features/listings
 

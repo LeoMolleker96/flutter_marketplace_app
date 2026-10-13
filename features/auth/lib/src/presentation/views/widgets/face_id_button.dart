@@ -1,4 +1,4 @@
-part of '../login_view.dart';
+part of '../sign_in_view.dart';
 
 /// Biometric shortcut pill.
 class _FaceIdButton extends StatelessWidget {

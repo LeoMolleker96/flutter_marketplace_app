@@ -9,13 +9,16 @@ import '../theme/theme_context_extension.dart';
 /// button themes cannot express.
 ///
 /// Whether the action is currently available is the caller's decision, passed
-/// as [enabled] — the button never infers it.
+/// as [enabled] — the button never infers it. The same goes for [isLoading]:
+/// the caller says an asynchronous action is under way, and the button only
+/// shows it.
 class AppPrimaryButton extends StatelessWidget {
   /// Creates a primary button.
   const AppPrimaryButton({
     required this.label,
     required this.onPressed,
     this.enabled = true,
+    this.isLoading = false,
     this.icon = Icons.arrow_forward,
     super.key,
   });
@@ -29,11 +32,23 @@ class AppPrimaryButton extends StatelessWidget {
   /// Whether the button accepts taps and renders as available.
   final bool enabled;
 
+  /// Whether an asynchronous action started by this button is in progress.
+  ///
+  /// Swaps the label and icon for a spinner and **ignores taps**, which is what
+  /// stops a second press from starting a second request. The button keeps its
+  /// size and its gradient: an action in flight is not the same as one that is
+  /// unavailable, so it does not turn grey.
+  final bool isLoading;
+
   /// Trailing icon; pass null for a label-only button.
   final IconData? icon;
 
   /// Fixed by the design; not a spacing token.
   static const _height = 52.0;
+
+  /// The spinner's diameter and stroke. Component dimensions, not spacing.
+  static const _spinnerSize = 20.0;
+  static const _spinnerStrokeWidth = 2.0;
 
   @override
   Widget build(BuildContext context) {
@@ -63,25 +78,35 @@ class AppPrimaryButton extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: enabled ? onPressed : null,
+          onTap: enabled && !isLoading ? onPressed : null,
           borderRadius: BorderRadius.circular(AppRadius.lg),
           child: SizedBox(
             height: _height,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  label,
-                  style: context.textStyles.labelLarge?.copyWith(
-                    color: foreground,
+            child: isLoading
+                ? Center(
+                    child: SizedBox.square(
+                      dimension: _spinnerSize,
+                      child: CircularProgressIndicator(
+                        strokeWidth: _spinnerStrokeWidth,
+                        color: foreground,
+                      ),
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        label,
+                        style: context.textStyles.labelLarge?.copyWith(
+                          color: foreground,
+                        ),
+                      ),
+                      if (icon != null) ...[
+                        const SizedBox(width: AppSpacing.sm),
+                        Icon(icon, size: 18, color: foreground),
+                      ],
+                    ],
                   ),
-                ),
-                if (icon != null) ...[
-                  const SizedBox(width: AppSpacing.sm),
-                  Icon(icon, size: 18, color: foreground),
-                ],
-              ],
-            ),
           ),
         ),
       ),

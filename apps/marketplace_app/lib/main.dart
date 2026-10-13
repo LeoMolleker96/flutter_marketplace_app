@@ -1,9 +1,15 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:marketplace_app/di/app_overrides.dart';
 import 'package:marketplace_app/router/app_router.dart';
 
 void main() {
-  runApp(const MarketplaceApp());
+  // ProviderScope holds every provider's state for the whole app. It is the
+  // only one, at the root: Riverpod's counterpart to wrapping the tree in
+  // BlocProviders, except one scope serves everything. The overrides are where
+  // the features' abstract seams get their real implementations.
+  runApp(ProviderScope(overrides: appOverrides(), child: const MarketplaceApp()));
 }
 
 /// Application root.

@@ -12,7 +12,10 @@ import 'package:go_router/go_router.dart';
 /// signing in leads to the listings.
 abstract final class AppRoutes {
   /// The app opens here.
-  static const login = '/';
+  static const signIn = '/';
+
+  /// The account-creation form, reached from the sign-in screen.
+  static const signUp = '/sign-up';
 
   /// The listings feed, shown once someone is signed in.
   static const listings = '/listings';
@@ -27,12 +30,26 @@ GoRouter createAppRouter() {
   return GoRouter(
     routes: [
       GoRoute(
-        path: AppRoutes.login,
-        name: 'login',
-        builder: (context, state) => LoginView(
+        path: AppRoutes.signIn,
+        name: 'signIn',
+        builder: (context, state) => SignInView(
           // `go` rather than `push`: after signing in, the back button must not
-          // return to the login form.
-          onLoggedIn: () => context.go(AppRoutes.listings),
+          // return to the sign-in form.
+          onSignedIn: () => context.go(AppRoutes.listings),
+          // Sign-in and sign-up are peers rather than a stack, so `go` swaps one
+          // for the other instead of piling a screen on top.
+          onSignUpTapped: () => context.go(AppRoutes.signUp),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.signUp,
+        name: 'signUp',
+        builder: (context, state) => SignUpView(
+          // Signing up leaves the user signed in, so it ends where signing in
+          // does, and for the same reason uses `go`: back must not return to the
+          // form.
+          onSignedUp: () => context.go(AppRoutes.listings),
+          onSignInTapped: () => context.go(AppRoutes.signIn),
         ),
       ),
       GoRoute(

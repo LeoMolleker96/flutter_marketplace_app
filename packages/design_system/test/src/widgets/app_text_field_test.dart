@@ -50,6 +50,105 @@ void main() {
     expect(controller.text, 'ana@example.com');
   });
 
+  group('errorText', () {
+    testWidgets('shows nothing by default', (tester) async {
+      await tester.pumpApp(
+        const AppTextField(
+          label: 'Email',
+          hintText: 'hint',
+          icon: Icons.mail_outline,
+        ),
+      );
+
+      expect(find.text('Not an email.'), findsNothing);
+    });
+
+    testWidgets('shows the message under the field', (tester) async {
+      await tester.pumpApp(
+        const AppTextField(
+          label: 'Email',
+          hintText: 'hint',
+          icon: Icons.mail_outline,
+          errorText: 'Not an email.',
+        ),
+      );
+
+      expect(find.text('Not an email.'), findsOneWidget);
+      // Under the field, not inside it: the field has a fixed height.
+      expect(
+        tester.getTopLeft(find.text('Not an email.')).dy,
+        greaterThanOrEqualTo(tester.getBottomLeft(find.byType(TextField)).dy),
+      );
+    });
+
+    testWidgets('does not overflow the fixed field height', (tester) async {
+      await tester.pumpApp(
+        const AppTextField(
+          label: 'Email',
+          hintText: 'hint',
+          icon: Icons.mail_outline,
+          errorText: 'Not an email.',
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(tester.getSize(find.byType(TextField)).height, 56);
+    });
+
+    testWidgets('takes an error-coloured border', (tester) async {
+      await tester.pumpApp(
+        const AppTextField(
+          label: 'Email',
+          hintText: 'hint',
+          icon: Icons.mail_outline,
+          errorText: 'Not an email.',
+        ),
+      );
+
+      final border = tester
+          .widget<TextField>(find.byType(TextField))
+          .decoration!
+          .enabledBorder! as OutlineInputBorder;
+
+      expect(border.borderSide.color, AppColors.error);
+    });
+
+    testWidgets('is announced to a screen reader when it appears',
+        (tester) async {
+      await tester.pumpApp(
+        const AppTextField(
+          label: 'Email',
+          hintText: 'hint',
+          icon: Icons.mail_outline,
+          errorText: 'Not an email.',
+        ),
+      );
+
+      final liveRegion = find.ancestor(
+        of: find.text('Not an email.'),
+        matching: find.byWidgetPredicate(
+          (widget) => widget is Semantics && widget.properties.liveRegion == true,
+        ),
+      );
+
+      expect(liveRegion, findsOneWidget);
+    });
+
+    testWidgets('goes away when the message is cleared', (tester) async {
+      Widget field(String? error) => AppTextField(
+            label: 'Email',
+            hintText: 'hint',
+            icon: Icons.mail_outline,
+            errorText: error,
+          );
+
+      await tester.pumpApp(field('Not an email.'));
+      await tester.pumpApp(field(null));
+
+      expect(find.text('Not an email.'), findsNothing);
+    });
+  });
+
   group('obscurable', () {
     testWidgets('a plain field has no visibility toggle', (tester) async {
       await tester.pumpApp(

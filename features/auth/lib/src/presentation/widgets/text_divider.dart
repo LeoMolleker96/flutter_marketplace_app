@@ -1,8 +1,16 @@
-part of '../login_view.dart';
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
 
 /// Horizontal rule with a caption centred in it.
-class _TextDivider extends StatelessWidget {
-  const _TextDivider();
+///
+/// The caption is a parameter because the screens that share this word it
+/// differently ("Or Continue With" on sign-in, "o" on sign-up).
+class TextDivider extends StatelessWidget {
+  /// Creates a divider captioned with [text].
+  const TextDivider(this.text, {super.key});
+
+  /// The caption shown between the two rules.
+  final String text;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +28,7 @@ class _TextDivider extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           child: Text(
-            'Or Continue With',
+            text,
             style: context.textStyles.labelSmall?.copyWith(
               color: colors.outline,
             ),

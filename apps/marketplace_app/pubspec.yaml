@@ -25,6 +25,7 @@ dependencies:
   # Workspace siblings. Resolved to the local copy; `any` because versions are
   # not bookkept while every package lives in this repository.
   design_system: any
+  network: any
   feature_auth: any
   feature_listings: any
 

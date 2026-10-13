@@ -12,7 +12,23 @@ dependencies:
     sdk: flutter
   design_system: any
 
+  # The data layer talks to the backend through this, never through dio itself.
+  network: any
+
+  # Keeps the session token in the platform's secure store (Keychain, Android
+  # Keystore). On web it uses an experimental WebCrypto scheme in localStorage.
+  flutter_secure_storage: ^11.2.0
+
+  # The view models live here, so the Riverpod annotation does too, and the
+  # views read them through flutter_riverpod's widgets.
+  flutter_riverpod: ^3.4.3
+  riverpod_annotation: ^4.0.7
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+
+  # Code generation for @riverpod; generated .g.dart files are committed.
+  build_runner: ^2.16.1
+  riverpod_generator: ^4.0.9

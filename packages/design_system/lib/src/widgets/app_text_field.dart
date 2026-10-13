@@ -5,7 +5,7 @@ import '../theme/theme_context_extension.dart';
 /// The design system's text field: a small label above a filled input with a
 /// leading icon.
 ///
-/// Covers both fields on the sign-in screen. The password case is
+/// Covers the fields on the sign-in and sign-up screens. The password case is
 /// [obscurable]: it hides the text and adds the eye toggle, which is the only
 /// state this widget owns.
 ///
@@ -22,6 +22,7 @@ class AppTextField extends StatefulWidget {
     this.keyboardType,
     this.textInputAction,
     this.labelAction,
+    this.errorText,
     super.key,
   });
 
@@ -49,6 +50,13 @@ class AppTextField extends StatefulWidget {
   /// Optional trailing widget on the label row.
   final Widget? labelAction;
 
+  /// Why the current text is not acceptable, or null when nothing is wrong.
+  ///
+  /// The caller decides when to show it — usually only once the user has typed
+  /// something, so an untouched form does not open already complaining. When set,
+  /// the field takes an error-coloured border and the message appears under it.
+  final String? errorText;
+
   @override
   State<AppTextField> createState() => _AppTextFieldState();
 }
@@ -63,6 +71,7 @@ class _AppTextFieldState extends State<AppTextField> {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final labelAction = widget.labelAction;
+    final errorText = widget.errorText;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -117,15 +126,42 @@ class _AppTextFieldState extends State<AppTextField> {
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md),
-                borderSide: BorderSide.none,
+                borderSide: errorText == null
+                    ? BorderSide.none
+                    : BorderSide(color: colors.error),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md),
-                borderSide: BorderSide(color: colors.primaryContainer, width: 2),
+                borderSide: BorderSide(
+                  color: errorText == null ? colors.primaryContainer : colors.error,
+                  width: 2,
+                ),
               ),
             ),
           ),
         ),
+        // Drawn here rather than through InputDecoration.errorText: the field
+        // above has a fixed height, and Material's error line would be squeezed
+        // into it instead of sitting underneath.
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(
+              left: AppSpacing.xs,
+              top: AppSpacing.xs,
+            ),
+            // A live region so a screen reader announces the message when it
+            // appears. It is not part of the TextField, so without this it
+            // would be silent to someone who cannot see the red text.
+            child: Semantics(
+              liveRegion: true,
+              child: Text(
+                errorText,
+                style: context.textStyles.bodySmall?.copyWith(
+                  color: colors.error,
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }

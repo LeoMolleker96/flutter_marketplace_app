@@ -40,7 +40,7 @@ on `design_system` and on nothing else of ours.
 
 **3. Features expose screens, never routes.** The app shell owns every path and
 is the only place that knows signing in leads to the listings; it passes that in
-as a callback (`LoginView(onLoggedIn: ...)`). Features have no dependency on
+as a callback (`SignInView(onSignedIn: ...)`). Features have no dependency on
 `go_router`.
 
 **4. Layering stays inside each feature package** (`src/data`, `src/domain`,

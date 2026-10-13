@@ -1,8 +1,12 @@
-part of '../login_view.dart';
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
 
 /// The app logo with its verified badge.
-class _BrandMark extends StatelessWidget {
-  const _BrandMark();
+///
+/// Shared by every authentication screen, so the logo cannot drift between them.
+class BrandMark extends StatelessWidget {
+  /// Creates the logo.
+  const BrandMark({super.key});
 
   static const _logoSize = 64.0;
   static const _badgeSize = 24.0;
