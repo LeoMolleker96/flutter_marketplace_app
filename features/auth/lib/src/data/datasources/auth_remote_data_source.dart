@@ -31,14 +31,15 @@ abstract interface class AuthRemoteDataSource {
 
 /// The dio-backed [AuthRemoteDataSource].
 ///
-/// The shapes below are the contract the backend must implement. They are
-/// recorded here because the backend does not exist yet, so this is where the
-/// two sides are agreed:
+/// The shapes below are the contract the backend implements, recorded here so
+/// the two sides can be compared at a glance:
 ///
-/// * sign-in: a `POST` to `/auth/sign-in` with a JSON body of `username` and
-///   `password`; a `401` answers wrong credentials;
+/// * sign-in: a `POST` to `/auth/sign-in` with a JSON body of `email` and
+///   `password`; a `200` answers success and a `401` wrong credentials;
 /// * sign-up: a `POST` to `/auth/sign-up` with a JSON body of `email` and
-///   `password`; a `409` answers an email that already has an account;
+///   `password`; a `201` answers success and a `409` an email that already has
+///   an account;
+/// * for both, a `400` answers a malformed body;
 /// * response, for both: a JSON body of `{"token": "<value>"}`.
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   /// Creates the data source over [dio], which already knows the base URL.
@@ -54,18 +55,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<String> signIn(SignInParams params) {
-    return _requestToken(
-      signInPath,
-      {'username': params.username, 'password': params.password},
-    );
+    return _requestToken(signInPath, {
+      'email': params.email,
+      'password': params.password,
+    });
   }
 
   @override
   Future<String> signUp(SignUpParams params) {
-    return _requestToken(
-      signUpPath,
-      {'email': params.email, 'password': params.password},
-    );
+    return _requestToken(signUpPath, {
+      'email': params.email,
+      'password': params.password,
+    });
   }
 
   /// Posts [body] to [path] and returns the token in the answer.

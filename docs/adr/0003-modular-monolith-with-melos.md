@@ -23,7 +23,7 @@ Melos 8 builds on Dart **pub workspaces**: the workspace is declared in the root
 
 ## Decision
 
-**1. A pub workspace with four packages**, under a root that contains no code:
+**1. A pub workspace with four packages**, under a root that contains no code (there is no `core/`; amended by ADR-0009: breakpoints live in `design_system`):
 
 ```
 pubspec.yaml            # workspace + Melos config
@@ -37,6 +37,14 @@ features/listings/      # feature_listings
 what its own `pubspec.yaml` declares, so "feature A must not use feature B" is
 now enforced by pub, not by review. `feature_auth` and `feature_listings` depend
 on `design_system` and on nothing else of ours.
+
+> **Amendment (2026-10-13): pub does not enforce this.** In a pub workspace a
+> single `package_config` lists every package, so an import of a package the
+> importer did not declare would still compile. What enforces the boundary is
+> the `depend_on_referenced_packages` and `implementation_imports` lints, raised
+> to errors in the root `analysis_options.yaml`, so `melos run analyze` fails on
+> a violation. An `// ignore:` for either would defeat the check and must not be
+> added. The decision stands; only the enforcement mechanism was misdescribed.
 
 **3. Features expose screens, never routes.** The app shell owns every path and
 is the only place that knows signing in leads to the listings; it passes that in
@@ -88,7 +96,8 @@ split was meant to remove.
 
 **Positive**
 
-- The dependency rules in ADR-0001 are enforced by the package graph.
+- The dependency rules in ADR-0001 are enforced by the package graph and the
+  two lints named in the amendment under decision 2, not by pub alone.
 - Each package analyses and tests on its own; Melos can run only the packages a
   change touched, which is what makes CI fast later.
 - A feature can be developed against the design system without the rest of the

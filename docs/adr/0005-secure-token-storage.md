@@ -48,7 +48,14 @@ encrypted data onto another device leaves it unreadable.
 **6. We accept the weak case, in the open: on web the token sits in
 `localStorage`**, encrypted with an experimental WebCrypto scheme that works
 only over HTTPS or on localhost. This raises the bar; it does not close the
-door, because the key is stored beside the data.
+door, because the key is stored beside the data: without `WebOptions.wrapKey`
+the AES key sits in the same `localStorage` as the encrypted token, so the web
+encryption only obscures.
+
+**7. On iOS the Keychain item is `first_unlock_this_device`**, not the package
+default (`unlocked`), which migrates to a new phone through encrypted backups
+(security finding S4; set in `AuthLocalDataSourceImpl.defaultIOSOptions`).
+Keychain items survive uninstall, which ADR-0007 has to handle.
 
 ## Alternatives considered
 

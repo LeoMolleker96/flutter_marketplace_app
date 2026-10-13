@@ -39,15 +39,19 @@ class _SignInError extends ConsumerWidget {
     }
 
     return switch (error) {
-      InvalidCredentialsFailure() => 'Incorrect username or password.',
+      InvalidCredentialsFailure() => 'Incorrect email or password.',
+      InvalidRequestFailure() =>
+        'Please check the details you entered and try again.',
       ConnectionFailure() =>
         "Can't reach the server. Check your connection and try again.",
       SessionNotSavedFailure() =>
         "You're signed in, but this device couldn't keep your session. "
             'Please try again.',
-      // Signing in never creates an account, so a clash of emails is not a
-      // failure this screen can cause.
-      EmailAlreadyInUseFailure() || UnknownAuthFailure() => generic,
+      // Signing in never creates an account, so a clash of emails or a broken
+      // sign-up rule is not a failure this screen can cause.
+      EmailAlreadyInUseFailure() ||
+      InvalidSignUpFailure() ||
+      UnknownAuthFailure() => generic,
     };
   }
 }

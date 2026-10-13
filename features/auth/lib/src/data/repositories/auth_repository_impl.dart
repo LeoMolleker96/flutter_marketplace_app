@@ -26,6 +26,7 @@ class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource _remote;
   final AuthLocalDataSource _local;
 
+  static const _badRequest = 400;
   static const _unauthorized = 401;
   static const _conflict = 409;
 
@@ -69,7 +70,10 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await _local.saveToken(token);
     } catch (error, stackTrace) {
-      Error.throwWithStackTrace(SessionNotSavedFailure(cause: error), stackTrace);
+      Error.throwWithStackTrace(
+        SessionNotSavedFailure(cause: error),
+        stackTrace,
+      );
     }
   }
 
@@ -82,8 +86,10 @@ class AuthRepositoryImpl implements AuthRepository {
       DioExceptionType.connectionError ||
       DioExceptionType.connectionTimeout ||
       DioExceptionType.sendTimeout ||
-      DioExceptionType.receiveTimeout =>
-        ConnectionFailure(cause: cause),
+      DioExceptionType.receiveTimeout => ConnectionFailure(cause: cause),
+      DioExceptionType.badResponse
+          when error.response?.statusCode == _badRequest =>
+        InvalidRequestFailure(cause: cause),
       DioExceptionType.badResponse
           when error.response?.statusCode == _unauthorized =>
         InvalidCredentialsFailure(cause: cause),

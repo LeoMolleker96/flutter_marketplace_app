@@ -21,10 +21,31 @@ sealed class AuthFailure implements Exception {
   String toString() => '$runtimeType';
 }
 
-/// The server rejected the username or password.
+/// The server rejected the email or password.
 final class InvalidCredentialsFailure extends AuthFailure {
   /// Creates the failure.
   const InvalidCredentialsFailure({super.cause});
+}
+
+/// The server rejected the request as malformed (a 400).
+///
+/// The client validates the same rules before sending, so this should be rare:
+/// when it happens it means the two sides' rules disagree, which is a bug to fix
+/// rather than something the person can act on.
+final class InvalidRequestFailure extends AuthFailure {
+  /// Creates the failure.
+  const InvalidRequestFailure({super.cause});
+}
+
+/// The sign-up input broke a business rule from `SignUpRules`.
+///
+/// Raised by the use case before any request is made, so the server is never
+/// called with input the app already knows is invalid. Unlike
+/// [InvalidRequestFailure], which is the server disagreeing, this is the app
+/// refusing on its own; it needs no cause because nothing failed underneath.
+final class InvalidSignUpFailure extends AuthFailure {
+  /// Creates the failure.
+  const InvalidSignUpFailure();
 }
 
 /// An account already exists for the email address being signed up.

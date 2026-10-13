@@ -33,12 +33,14 @@ class AuthLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isWide = context.windowSizeClass.isAtLeast(WindowSizeClass.expanded);
+
     return Scaffold(
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.marginMobile,
+            padding: EdgeInsets.symmetric(
+              horizontal: isWide ? AppSpacing.margin : AppSpacing.marginMobile,
               vertical: AppSpacing.xl,
             ),
             child: ConstrainedBox(

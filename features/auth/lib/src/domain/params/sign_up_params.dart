@@ -5,8 +5,9 @@
 /// every signature that passes it along.
 ///
 /// It is separate from `SignInParams` rather than reused because the two are
-/// different questions. Sign-in takes whatever identifier the user types, an
-/// email or a username; an account is created from an email address.
+/// different questions: sign-in checks who someone is, sign-up creates an
+/// account. Both are keyed by an email address today, but they are free to
+/// diverge.
 ///
 /// Pure Dart on purpose: it lives in `domain`, which must not import Flutter.
 ///

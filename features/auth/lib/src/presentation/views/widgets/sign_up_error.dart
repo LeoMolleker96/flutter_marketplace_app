@@ -26,22 +26,24 @@ class _SignUpError extends ConsumerWidget {
   /// Anything that is not an `AuthFailure` is a bug or an unexpected error and
   /// gets the generic message rather than a stack trace.
   static String _messageFor(Object error) {
-    const generic = 'Algo salió mal. Inténtalo de nuevo.';
+    const generic = 'Something went wrong. Please try again.';
 
     if (error is! AuthFailure) {
       return generic;
     }
 
     return switch (error) {
-      EmailAlreadyInUseFailure() => 'Ya existe una cuenta con ese correo.',
+      EmailAlreadyInUseFailure() =>
+        'An account with that email already exists.',
+      InvalidRequestFailure() || InvalidSignUpFailure() =>
+        'Please check the details you entered and try again.',
       ConnectionFailure() =>
-        'No se puede conectar con el servidor. Revisa tu conexión e inténtalo '
-            'de nuevo.',
+        "Can't reach the server. Check your connection and try again.",
       // The account exists; only this device failed to keep the session. Trying
       // to sign up again would be refused, so the person is sent to sign in.
       SessionNotSavedFailure() =>
-        'Tu cuenta se creó, pero no pudimos guardar tu sesión en este '
-            'dispositivo. Inicia sesión para continuar.',
+        "Your account was created, but this device couldn't keep your "
+            'session. Please sign in to continue.',
       // Creating an account never checks credentials, so a rejection of them is
       // not a failure this screen can cause.
       InvalidCredentialsFailure() || UnknownAuthFailure() => generic,

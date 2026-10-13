@@ -2,9 +2,15 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:marketplace_app/di/app_overrides.dart';
+import 'package:marketplace_app/di/dio_provider.dart';
 import 'package:marketplace_app/router/app_router.dart';
 
 void main() {
+  // Fail fast: providers are lazy (keepAlive controls how long a provider
+  // lives, not when it is created), so without this call a misconfigured
+  // API_BASE_URL would only surface on the first sign-in.
+  resolveApiBaseUrl();
+
   // ProviderScope holds every provider's state for the whole app. It is the
   // only one, at the root: Riverpod's counterpart to wrapping the tree in
   // BlocProviders, except one scope serves everything. The overrides are where

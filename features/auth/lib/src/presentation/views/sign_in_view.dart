@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/failures/auth_failure.dart';
 import '../../domain/params/sign_in_params.dart';
+import '../../domain/rules/email_rule.dart';
 import '../view_models/sign_in_controller.dart';
 import '../widgets/auth_error_notice.dart';
 import '../widgets/auth_layout.dart';
@@ -64,17 +65,33 @@ class _SignInViewState extends ConsumerState<SignInView> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  /// Owned with the controllers so Enter on the email can move to the password.
+  final _passwordFocus = FocusNode();
+
   @override
   void dispose() {
     _rememberMe.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _passwordFocus.dispose();
     super.dispose();
+  }
+
+  /// Enter on the password field: submits only if the button would let it.
+  ///
+  /// The same guard as the button's `enabled` and `isLoading`, because Enter
+  /// is a second way to press it and must not bypass what it refuses.
+  void _submitFromKeyboard() {
+    final canSubmit =
+        EmailRule.isValid(_emailController.text) &&
+        _passwordController.text.isNotEmpty;
+    if (!canSubmit || ref.read(signInControllerProvider).isLoading) return;
+    _submit();
   }
 
   /// Sends the credentials to the controller.
   ///
-  /// The username is trimmed, matching the rule that enables the button; the
+  /// The email is trimmed, matching the rule that enables the button; the
   /// password is not, because spaces are valid in one.
   void _submit() {
     // The outcome is read from the controller's state, not from this call, so
@@ -84,7 +101,7 @@ class _SignInViewState extends ConsumerState<SignInView> {
           .read(signInControllerProvider.notifier)
           .signIn(
             SignInParams(
-              username: _emailController.text.trim(),
+              email: _emailController.text.trim(),
               password: _passwordController.text,
             ),
           ),
@@ -110,7 +127,9 @@ class _SignInViewState extends ConsumerState<SignInView> {
           rememberMe: _rememberMe,
           emailController: _emailController,
           passwordController: _passwordController,
+          passwordFocus: _passwordFocus,
           onSubmit: _submit,
+          onPasswordSubmitted: _submitFromKeyboard,
         ),
         const SizedBox(height: AppSpacing.md),
         const TextDivider('Or Continue With'),

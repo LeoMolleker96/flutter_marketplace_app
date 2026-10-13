@@ -105,16 +105,19 @@ void main() {
         ),
       );
 
-      final border = tester
-          .widget<TextField>(find.byType(TextField))
-          .decoration!
-          .enabledBorder! as OutlineInputBorder;
+      final border =
+          tester
+                  .widget<TextField>(find.byType(TextField))
+                  .decoration!
+                  .enabledBorder!
+              as OutlineInputBorder;
 
       expect(border.borderSide.color, AppColors.error);
     });
 
-    testWidgets('is announced to a screen reader when it appears',
-        (tester) async {
+    testWidgets('is announced to a screen reader when it appears', (
+      tester,
+    ) async {
       await tester.pumpApp(
         const AppTextField(
           label: 'Email',
@@ -127,7 +130,8 @@ void main() {
       final liveRegion = find.ancestor(
         of: find.text('Not an email.'),
         matching: find.byWidgetPredicate(
-          (widget) => widget is Semantics && widget.properties.liveRegion == true,
+          (widget) =>
+              widget is Semantics && widget.properties.liveRegion == true,
         ),
       );
 
@@ -136,11 +140,11 @@ void main() {
 
     testWidgets('goes away when the message is cleared', (tester) async {
       Widget field(String? error) => AppTextField(
-            label: 'Email',
-            hintText: 'hint',
-            icon: Icons.mail_outline,
-            errorText: error,
-          );
+        label: 'Email',
+        hintText: 'hint',
+        icon: Icons.mail_outline,
+        errorText: error,
+      );
 
       await tester.pumpApp(field('Not an email.'));
       await tester.pumpApp(field(null));
@@ -159,7 +163,10 @@ void main() {
         ),
       );
 
-      expect(tester.widget<TextField>(find.byType(TextField)).obscureText, isFalse);
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).obscureText,
+        isFalse,
+      );
       expect(find.byIcon(Icons.visibility), findsNothing);
     });
 
@@ -188,6 +195,200 @@ void main() {
       await tester.pump();
 
       expect(field().obscureText, isTrue);
+    });
+  });
+
+  group('keyboard and privacy', () {
+    TextField field(WidgetTester tester) =>
+        tester.widget<TextField>(find.byType(TextField));
+
+    const password = AppTextField(
+      label: 'Password',
+      hintText: '••••••••',
+      icon: Icons.lock_outline,
+      obscurable: true,
+    );
+
+    testWidgets('an obscurable field never autocorrects or suggests', (
+      tester,
+    ) async {
+      await tester.pumpApp(password);
+
+      expect(field(tester).autocorrect, isFalse);
+      expect(field(tester).enableSuggestions, isFalse);
+
+      // Revealed, it is plain text, and the keyboard must still not learn it.
+      await tester.tap(find.byIcon(Icons.visibility));
+      await tester.pump();
+
+      expect(field(tester).obscureText, isFalse);
+      expect(field(tester).autocorrect, isFalse);
+      expect(field(tester).enableSuggestions, isFalse);
+
+      await tester.tap(find.byIcon(Icons.visibility_off));
+      await tester.pump();
+
+      expect(field(tester).autocorrect, isFalse);
+      expect(field(tester).enableSuggestions, isFalse);
+    });
+
+    testWidgets('a plain field keeps autocorrect and suggestions', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        const AppTextField(
+          label: 'Email',
+          hintText: 'hint',
+          icon: Icons.mail_outline,
+        ),
+      );
+
+      expect(field(tester).autocorrect, isTrue);
+      expect(field(tester).enableSuggestions, isTrue);
+    });
+
+    testWidgets('asks for the visible-password keyboard only when revealed', (
+      tester,
+    ) async {
+      await tester.pumpApp(password);
+
+      expect(field(tester).keyboardType, isNot(TextInputType.visiblePassword));
+
+      await tester.tap(find.byIcon(Icons.visibility));
+      await tester.pump();
+
+      expect(field(tester).keyboardType, TextInputType.visiblePassword);
+
+      await tester.tap(find.byIcon(Icons.visibility_off));
+      await tester.pump();
+
+      expect(field(tester).keyboardType, isNot(TextInputType.visiblePassword));
+    });
+
+    testWidgets('a plain field keeps the keyboard type it was given', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        const AppTextField(
+          label: 'Email',
+          hintText: 'hint',
+          icon: Icons.mail_outline,
+          keyboardType: TextInputType.emailAddress,
+        ),
+      );
+
+      expect(field(tester).keyboardType, TextInputType.emailAddress);
+    });
+
+    testWidgets('forwards the autofill hints', (tester) async {
+      await tester.pumpApp(
+        const AppTextField(
+          label: 'Email',
+          hintText: 'hint',
+          icon: Icons.mail_outline,
+          autofillHints: [AutofillHints.email, AutofillHints.username],
+        ),
+      );
+
+      expect(field(tester).autofillHints, [
+        AutofillHints.email,
+        AutofillHints.username,
+      ]);
+    });
+
+    testWidgets('forwards the submit action with the typed text', (
+      tester,
+    ) async {
+      final submitted = <String>[];
+      await tester.pumpApp(
+        AppTextField(
+          label: 'Email',
+          hintText: 'hint',
+          icon: Icons.mail_outline,
+          onSubmitted: submitted.add,
+        ),
+      );
+
+      await tester.enterText(find.byType(TextField), 'ana');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+
+      expect(submitted, ['ana']);
+    });
+
+    testWidgets('uses the focus node it is given', (tester) async {
+      final node = FocusNode();
+      addTearDown(node.dispose);
+      await tester.pumpApp(
+        AppTextField(
+          label: 'Email',
+          hintText: 'hint',
+          icon: Icons.mail_outline,
+          focusNode: node,
+        ),
+      );
+
+      node.requestFocus();
+      await tester.pump();
+
+      expect(node.hasFocus, isTrue);
+      expect(field(tester).focusNode, node);
+    });
+
+    testWidgets('refuses text beyond maxLength, however much is entered', (
+      tester,
+    ) async {
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+      await tester.pumpApp(
+        AppTextField(
+          label: 'Email',
+          hintText: 'hint',
+          icon: Icons.mail_outline,
+          controller: controller,
+          maxLength: 20,
+        ),
+      );
+
+      await tester.enterText(find.byType(TextField), 'a' * 300);
+      await tester.pump();
+
+      expect(controller.text, hasLength(20));
+    });
+
+    testWidgets('does not show the character counter', (tester) async {
+      await tester.pumpApp(
+        const AppTextField(
+          label: 'Email',
+          hintText: 'hint',
+          icon: Icons.mail_outline,
+          maxLength: 20,
+        ),
+      );
+
+      await tester.enterText(find.byType(TextField), 'abcde');
+      await tester.pump();
+
+      expect(find.text('5/20'), findsNothing);
+      expect(find.textContaining(RegExp(r'^\d+/\d+$')), findsNothing);
+      expect(tester.getSize(find.byType(TextField)).height, 56);
+    });
+
+    testWidgets('has no limit unless one is given', (tester) async {
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+      await tester.pumpApp(
+        AppTextField(
+          label: 'Email',
+          hintText: 'hint',
+          icon: Icons.mail_outline,
+          controller: controller,
+        ),
+      );
+
+      await tester.enterText(find.byType(TextField), 'a' * 300);
+
+      expect(controller.text, hasLength(300));
     });
   });
 }

@@ -6,6 +6,7 @@
 /// else — which keeps the design system free to reorganise its internals.
 library;
 
+export 'src/layout/window_size_class.dart';
 export 'src/theme/app_colors.dart';
 export 'src/theme/app_spacing.dart';
 export 'src/theme/app_theme.dart';

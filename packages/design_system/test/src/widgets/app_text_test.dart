@@ -19,6 +19,25 @@ void main() {
     expect(text.style?.color, AppColors.onSurface);
   });
 
+  testWidgets('AppTitle grows to the desktop style from expanded up', (
+    tester,
+  ) async {
+    await tester.pumpApp(const AppTitle('Welcome back'), size: expandedSize);
+
+    final text = tester.widget<Text>(find.text('Welcome back'));
+
+    expect(text.style?.fontSize, AppTypography.displayLg.fontSize);
+    expect(text.style?.fontSize, 40);
+  });
+
+  testWidgets('AppTitle stays at the mobile style below expanded', (
+    tester,
+  ) async {
+    await tester.pumpApp(const AppTitle('Welcome back'));
+
+    expect(tester.widget<Text>(find.text('Welcome back')).style?.fontSize, 32);
+  });
+
   testWidgets('AppSubtitle uses body on the muted colour', (tester) async {
     await tester.pumpApp(const AppSubtitle('Discover unique finds'));
 
@@ -40,11 +59,7 @@ void main() {
   testWidgets('all three centre their text by default', (tester) async {
     await tester.pumpApp(
       const Column(
-        children: [
-          AppTitle('a'),
-          AppSubtitle('b'),
-          AppFootnote('c'),
-        ],
+        children: [AppTitle('a'), AppSubtitle('b'), AppFootnote('c')],
       ),
     );
 

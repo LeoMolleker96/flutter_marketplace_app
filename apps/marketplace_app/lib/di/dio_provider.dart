@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:network/network.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -15,35 +13,79 @@ part 'dio_provider.g.dart';
 /// flutter run --dart-define=API_BASE_URL=https://staging.example.com
 /// ```
 ///
+/// It must be `const`: the compiler substitutes a `--dart-define` value only
+/// where `String.fromEnvironment` is read in a constant expression. Web and AOT
+/// builds (mobile release/profile) have no runtime environment to ask, so a
+/// non-const read compiles to an error on web and silently ignores the define
+/// under AOT. That is also why the default cannot depend on the platform
+/// (`Platform.isAndroid` does not even exist on web): it is a single constant.
+///
 /// The default points at a backend running on this machine, which is where it
-/// will be while the app is being built. Proper per-environment configuration
-/// arrives with flavors (v0.6) and replaces this.
-final _apiBaseUrl = String.fromEnvironment(
+/// will be while the app is being built. It works on web, desktop and the iOS
+/// simulator. The Android emulator cannot reach the host through `localhost`
+/// (that is the emulator itself), so run it with
+/// `--dart-define=API_BASE_URL=http://10.0.2.2:3000`, where `10.0.2.2` is the
+/// emulator's alias for the host machine. A physical device needs the
+/// computer's LAN address over https, or a debug-only loopback tunnel. Proper
+/// per-environment configuration arrives with flavors (v0.6) and replaces this.
+const _apiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: Platform.isAndroid || Platform.isIOS ? 'http://10.0.2.2:3000' : 'http://localhost:3000',
+  defaultValue: 'http://localhost:3000',
 );
+
+/// Hosts a debug build may reach over plain `http`: this machine, and the
+/// Android emulator's alias for it. Traffic to them never leaves the computer.
+const _debugHttpHosts = {'localhost', '127.0.0.1', '10.0.2.2'};
+
+/// The validated backend address for this build.
+///
+/// Reads the compile-time `API_BASE_URL` and checks it against the current
+/// build mode (`kDebugMode`). It is public so `main` can call it before
+/// `runApp`: a misconfigured build then fails at startup instead of on the
+/// first sign-in, when a user is already waiting. `dioProvider` uses the same
+/// function, so the address that was checked is the one that is used.
+String resolveApiBaseUrl() {
+  return validateApiBaseUrl(_apiBaseUrl, isDebug: kDebugMode);
+}
 
 /// Returns [baseUrl] if it is safe to send credentials to, and throws if not.
 ///
-/// A release build must talk to the backend over HTTPS: usernames, passwords and
-/// tokens cross this connection, and over `http://` they would cross it in the
-/// clear. Without this check, a build made for a tester with a plain `http://`
-/// address — or the development default left in place — would ship that way
-/// quietly.
+/// Emails, passwords and tokens cross this connection, so `https` is
+/// accepted in every build mode. Plain `http` is accepted only in a debug build
+/// and only for `localhost`, `127.0.0.1` or `10.0.2.2`, where the traffic never
+/// leaves the machine. Everything else is refused, so profile and release builds
+/// require `https`: a build made for a tester with a plain `http://` address, or
+/// with the development default left in place, would otherwise ship sending
+/// credentials in the clear.
 ///
-/// Debug and profile builds are not checked, because the backend runs on
-/// `http://localhost` while the app is being built. [isRelease] is a parameter
-/// so a test can exercise both cases; the app passes `kReleaseMode`.
+/// An address that cannot be parsed, has no host, or uses a scheme other than
+/// `http`/`https` is refused too. [isDebug] is a parameter so a test can
+/// exercise both cases; the app passes `kDebugMode`.
 @visibleForTesting
-String validateApiBaseUrl(String baseUrl, {required bool isRelease}) {
-  if (isRelease && !Uri.parse(baseUrl).isScheme('https')) {
+String validateApiBaseUrl(String baseUrl, {required bool isDebug}) {
+  final uri = Uri.tryParse(baseUrl);
+  final isHttp = uri != null && uri.isScheme('http');
+  final isHttps = uri != null && uri.isScheme('https');
+
+  if (uri == null || uri.host.isEmpty || !(isHttp || isHttps)) {
     throw StateError(
-      'API_BASE_URL must use https in a release build, but is "$baseUrl". '
-      'Pass --dart-define=API_BASE_URL=https://... when building.',
+      'API_BASE_URL is "$baseUrl", which is not a valid http(s) address with a '
+      'host. Pass --dart-define=API_BASE_URL=https://... when building.',
     );
   }
 
-  return baseUrl;
+  if (isHttps) return baseUrl;
+
+  if (isDebug && _debugHttpHosts.contains(uri.host)) return baseUrl;
+
+  final required = isDebug
+      ? 'https, or http to one of ${_debugHttpHosts.join(', ')}'
+      : 'https in profile and release builds';
+  throw StateError(
+    'API_BASE_URL is "$baseUrl", but $required is required. '
+    'Pass --dart-define=API_BASE_URL=https://... when building'
+    '${isDebug ? ', or a loopback http URL such as http://localhost:3000' : ''}.',
+  );
 }
 
 /// The HTTP client every feature's data layer uses.
@@ -62,7 +104,7 @@ String validateApiBaseUrl(String baseUrl, {required bool isRelease}) {
 @Riverpod(keepAlive: true)
 Dio dio(Ref ref) {
   return createDio(
-    baseUrl: validateApiBaseUrl(_apiBaseUrl, isRelease: kReleaseMode),
+    baseUrl: resolveApiBaseUrl(),
     onUnauthorized: () {},
   );
 }

@@ -35,7 +35,7 @@ A constraint specific to this project: Riverpod 3 changed significantly from Riv
 
 Entities, a use-case class for every operation, repository interfaces in `domain`, `Either`-based results throughout. Rejected because the one-use-case-per-method rule generates large amounts of pass-through boilerplate on a solo project, and because its vocabulary has drifted away from what the Flutter ecosystem and Flutter's own documentation now use — which would make the author's experience here translate less directly to real teams.
 
-Use-cases are still used, but introduced on demand (logic spanning repositories, genuine complexity, or reuse).
+Use-cases are still used, but introduced on demand (logic spanning repositories, genuine complexity, or reuse). Amended for feature_auth by ADR-0008.
 
 ### Flutter's official architecture, unmodified
 

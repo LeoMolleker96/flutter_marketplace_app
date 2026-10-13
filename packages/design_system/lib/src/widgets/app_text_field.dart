@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show MaxLengthEnforcement;
+
 import '../theme/app_spacing.dart';
 import '../theme/theme_context_extension.dart';
 
@@ -21,6 +23,10 @@ class AppTextField extends StatefulWidget {
     this.obscurable = false,
     this.keyboardType,
     this.textInputAction,
+    this.focusNode,
+    this.autofillHints,
+    this.onSubmitted,
+    this.maxLength,
     this.labelAction,
     this.errorText,
     super.key,
@@ -46,6 +52,34 @@ class AppTextField extends StatefulWidget {
 
   /// What the keyboard's action key does.
   final TextInputAction? textInputAction;
+
+  /// Focus owner for this field, so a form can move focus between its fields.
+  ///
+  /// The caller creates and disposes it; the field only uses it. Null leaves
+  /// Flutter to manage an internal one.
+  final FocusNode? focusNode;
+
+  /// What the platform's autofill service may put in this field.
+  ///
+  /// Without hints, password managers can neither fill nor offer to generate a
+  /// password. The field does not know what it collects, so the form says so
+  /// (for example `AutofillHints.password`). Only takes effect inside an
+  /// `AutofillGroup`.
+  final Iterable<String>? autofillHints;
+
+  /// Called when the user submits from the keyboard (Enter on the web, the
+  /// action key on mobile).
+  ///
+  /// Without it, Enter does nothing useful on a form that is otherwise only
+  /// submittable by clicking.
+  final ValueChanged<String>? onSubmitted;
+
+  /// Longest text the field accepts; anything beyond it is refused as typed or
+  /// pasted.
+  ///
+  /// A hard limit, not a hint: it bounds the work validation does on every
+  /// keystroke. Flutter's character counter is deliberately not shown.
+  final int? maxLength;
 
   /// Optional trailing widget on the label row.
   final Widget? labelAction;
@@ -96,12 +130,31 @@ class _AppTextFieldState extends State<AppTextField> {
           child: TextField(
             controller: widget.controller,
             obscureText: _obscured,
-            keyboardType: widget.keyboardType,
+            focusNode: widget.focusNode,
+            // While the password is revealed it sits in plain text, so the
+            // keyboard is asked not to treat it as prose. While obscured, the
+            // configured type is kept: the platform already treats an obscured
+            // field as a password.
+            keyboardType: widget.obscurable && !_obscured
+                ? TextInputType.visiblePassword
+                : widget.keyboardType,
             textInputAction: widget.textInputAction,
+            autofillHints: widget.autofillHints,
+            onSubmitted: widget.onSubmitted,
+            maxLength: widget.maxLength,
+            maxLengthEnforcement: MaxLengthEnforcement.enforced,
+            // A password must never reach the keyboard's learned vocabulary, so
+            // this holds whether it is obscured or revealed by the eye toggle.
+            autocorrect: !widget.obscurable,
+            enableSuggestions: !widget.obscurable,
             style: context.textStyles.bodyLarge?.copyWith(
               color: colors.onSurface,
             ),
             decoration: InputDecoration(
+              // Hides the "12/254" counter that maxLength adds: the field has a
+              // fixed height, and the limit is a safeguard, not something to
+              // show.
+              counterText: '',
               hintText: widget.hintText,
               hintStyle: context.textStyles.bodyLarge?.copyWith(
                 color: colors.outline,
@@ -133,7 +186,9 @@ class _AppTextFieldState extends State<AppTextField> {
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 borderSide: BorderSide(
-                  color: errorText == null ? colors.primaryContainer : colors.error,
+                  color: errorText == null
+                      ? colors.primaryContainer
+                      : colors.error,
                   width: 2,
                 ),
               ),

@@ -1,0 +1,14 @@
+# Copy this file to android/key.properties and fill in your own values.
+# The real file is git-ignored; never commit it, and never commit the keystore.
+# Release builds fail with a clear message if key.properties is missing.
+
+# Path to the upload keystore. Absolute, or relative to android/app.
+# The keystore lives outside the repository (for example ~/keys/).
+storeFile=/absolute/path/to/marketplace-upload.jks
+
+# Passwords chosen when the keystore was created with keytool.
+storePassword=<keystore password>
+keyPassword=<key password>
+
+# Alias passed to keytool with -alias.
+keyAlias=upload

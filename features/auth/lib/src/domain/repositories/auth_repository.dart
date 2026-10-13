@@ -6,8 +6,8 @@ import '../params/sign_up_params.dart';
 /// This is the **interface**, and it lives in `domain` on purpose: the
 /// implementation will live in `data`, which depends on `domain` and never the
 /// other way round. Presentation talks only to this contract, so it can be built
-/// and tested before any backend exists, and swapping the real implementation in
-/// later touches no view model.
+/// and tested without a backend, and swapping the implementation touches no view
+/// model.
 abstract interface class AuthRepository {
   /// Signs in with the given credentials.
   ///

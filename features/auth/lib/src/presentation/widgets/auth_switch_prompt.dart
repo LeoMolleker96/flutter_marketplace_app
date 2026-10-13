@@ -2,7 +2,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 
 /// The line that sends someone to the other authentication screen: "Don't have
-/// an account? Sign up" on sign-in, "¿Ya tienes cuenta? Inicia sesión" on
+/// an account? Sign up" on sign-in, "Already have an account? Sign in" on
 /// sign-up.
 ///
 /// One widget for both directions because they are the same sentence turned

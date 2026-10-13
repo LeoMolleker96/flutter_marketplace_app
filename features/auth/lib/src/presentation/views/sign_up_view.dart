@@ -33,7 +33,7 @@ part 'widgets/sign_up_form.dart';
 /// `SignUpRules` in `domain`, so the screen decides how to show them and not what
 /// they are.
 ///
-/// Knows nothing about where a new user goes next, or where "Inicia sesión"
+/// Knows nothing about where a new user goes next, or where "Sign in"
 /// leads: the app shell hands in [onSignedUp] and [onSignInTapped]. This is what
 /// keeps the auth feature from depending on any other feature or on the router.
 class SignUpView extends ConsumerStatefulWidget {
@@ -50,7 +50,7 @@ class SignUpView extends ConsumerStatefulWidget {
   /// Not called when the attempt fails or while it is still in flight.
   final VoidCallback onSignedUp;
 
-  /// Called when the user taps "Inicia sesión".
+  /// Called when the user taps "Sign in".
   final VoidCallback onSignInTapped;
 
   @override
@@ -64,12 +64,32 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
 
+  /// Owned with the controllers so Enter can walk email, password, confirmation.
+  final _passwordFocus = FocusNode();
+  final _confirmFocus = FocusNode();
+
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
+    _passwordFocus.dispose();
+    _confirmFocus.dispose();
     super.dispose();
+  }
+
+  /// Enter on the confirmation: submits only if the button would let it.
+  ///
+  /// The same guard as the button's `enabled` and `isLoading`, because Enter
+  /// is a second way to press it and must not bypass what it refuses.
+  void _submitFromKeyboard() {
+    final canSubmit = SignUpRules.isComplete(
+      email: _emailController.text,
+      password: _passwordController.text,
+      confirmation: _confirmController.text,
+    );
+    if (!canSubmit || ref.read(signUpControllerProvider).isLoading) return;
+    _submit();
   }
 
   /// Sends the details to the controller.
@@ -103,31 +123,34 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
     });
 
     return AuthLayout(
-      title: 'Únete a Agora',
-      subtitle: 'Descubre, compra y vende piezas únicas en una comunidad de confianza.',
+      title: 'Join Agora',
+      subtitle: 'Discover, buy and sell unique finds in a trusted community',
       children: [
         _SignUpForm(
           emailController: _emailController,
           passwordController: _passwordController,
           confirmController: _confirmController,
+          passwordFocus: _passwordFocus,
+          confirmFocus: _confirmFocus,
           onSubmit: _submit,
+          onConfirmSubmitted: _submitFromKeyboard,
         ),
         const SizedBox(height: AppSpacing.md),
-        const TextDivider('o'),
+        const TextDivider('Or Continue With'),
         const SizedBox(height: AppSpacing.md),
-        const GoogleButton('Continuar con Google'),
+        const GoogleButton('Continue with Google'),
         const SizedBox(height: AppSpacing.lg),
         AuthSwitchPrompt(
-          question: '¿Ya tienes cuenta?',
-          actionLabel: 'Inicia sesión',
+          question: 'Already have an account?',
+          actionLabel: 'Sign in',
           onTap: widget.onSignInTapped,
         ),
         const SizedBox(height: AppSpacing.md),
         const LegalNotice(
-          opening: 'Al registrarte, aceptas nuestros ',
-          termsLabel: 'Términos de servicio',
-          connector: ' y la ',
-          privacyLabel: 'Política de privacidad',
+          opening: "By signing up, you agree to Agora's ",
+          termsLabel: 'Terms of Service',
+          connector: ' & ',
+          privacyLabel: 'Privacy Policy',
         ),
       ],
     );

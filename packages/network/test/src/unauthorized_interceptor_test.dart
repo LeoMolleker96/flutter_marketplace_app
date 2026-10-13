@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:network/network.dart';
 
-import '../helpers/fake_adapter.dart';
+import '../helpers/mock_http_client_adapter.dart';
 
 void main() {
   late int unauthorizedCalls;
 
-  Dio buildClient(FakeAdapter adapter) {
+  Dio buildClient(MockHttpClientAdapter adapter) {
     final dio = createDio(
       baseUrl: 'https://api.test',
       onUnauthorized: () => unauthorizedCalls++,
@@ -18,7 +18,7 @@ void main() {
   setUp(() => unauthorizedCalls = 0);
 
   test('calls onUnauthorized when a request returns 401', () async {
-    final dio = buildClient(FakeAdapter.always(401));
+    final dio = buildClient(stubAdapterAlways(401));
 
     await expectLater(dio.get<void>('/me'), throwsA(isA<DioException>()));
 
@@ -26,7 +26,7 @@ void main() {
   });
 
   test('calls it only once across later 401s', () async {
-    final dio = buildClient(FakeAdapter.always(401));
+    final dio = buildClient(stubAdapterAlways(401));
 
     for (var i = 0; i < 3; i++) {
       await expectLater(dio.get<void>('/me'), throwsA(isA<DioException>()));
@@ -38,7 +38,7 @@ void main() {
   test('calls it only once when 401s arrive concurrently', () async {
     // The realistic case: a session expires and every request already in flight
     // fails together.
-    final dio = buildClient(FakeAdapter.always(401));
+    final dio = buildClient(stubAdapterAlways(401));
 
     final results = await Future.wait(
       List.generate(
@@ -56,7 +56,7 @@ void main() {
 
   test('still delivers the 401 to the caller', () async {
     // The interceptor reports; it must not swallow the failure.
-    final dio = buildClient(FakeAdapter.always(401));
+    final dio = buildClient(stubAdapterAlways(401));
 
     await expectLater(
       dio.get<void>('/me'),
@@ -72,7 +72,7 @@ void main() {
 
   test('ignores other error statuses', () async {
     for (final status in [400, 403, 404, 500]) {
-      final dio = buildClient(FakeAdapter.always(status));
+      final dio = buildClient(stubAdapterAlways(status));
 
       await expectLater(dio.get<void>('/x'), throwsA(isA<DioException>()));
     }
@@ -81,7 +81,7 @@ void main() {
   });
 
   test('ignores successful responses', () async {
-    final dio = buildClient(FakeAdapter.always(200));
+    final dio = buildClient(stubAdapterAlways(200));
 
     await dio.get<void>('/me');
 
@@ -90,7 +90,7 @@ void main() {
 
   test('a non-401 failure does not use up the one report', () async {
     var status = 500;
-    final dio = buildClient(FakeAdapter((_) => status));
+    final dio = buildClient(stubAdapter((_) => status));
 
     await expectLater(dio.get<void>('/x'), throwsA(isA<DioException>()));
     expect(unauthorizedCalls, 0);
@@ -101,8 +101,8 @@ void main() {
   });
 
   test('each client keeps its own latch', () async {
-    final first = buildClient(FakeAdapter.always(401));
-    final second = buildClient(FakeAdapter.always(401));
+    final first = buildClient(stubAdapterAlways(401));
+    final second = buildClient(stubAdapterAlways(401));
 
     await expectLater(first.get<void>('/me'), throwsA(isA<DioException>()));
     await expectLater(second.get<void>('/me'), throwsA(isA<DioException>()));

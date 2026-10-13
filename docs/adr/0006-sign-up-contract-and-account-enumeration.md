@@ -22,6 +22,27 @@ addresses and learn which belong to people with an account — useful for
 targeted phishing and for credential-stuffing the sign-in endpoint. Sign-in
 avoids it by answering wrong username and wrong password identically.
 
+> **Update (2026-10-13): the backend now exists, and this is its contract.**
+> The text above was written before it did. `../marketplace_api` implements:
+>
+> - `POST /auth/sign-in` and `POST /auth/sign-up`, both with `{"email": "..",
+>   "password": ".."}`. Sign-in is by email too (the earlier `username` is gone).
+> - Success answers `{"token": ".."}`: `200` for sign-in, `201` for sign-up.
+> - `400` for a malformed body (not an object, or a missing or invalid email or
+>   password), `401` for wrong credentials, `409` for an email that already has
+>   an account. The app maps the `400` to `InvalidRequestFailure`.
+> - The server validates the email with the same pattern the app's `EmailRule`
+>   uses, and currently requires only a **non-empty** password.
+>
+> The password rules now live on the client: at least 8 characters, an
+> uppercase letter, a number and a symbol (`SignUpRules`, enforced by
+> `SignUpUseCase`; ADR-0008). The server does not enforce them, so any client
+> other than this app can create a weaker password. That is an **open item for
+> the API session**, together with the maximum password length, email
+> normalisation and the rate limiting listed below. The `409` is implemented, so
+> the enumeration risk this ADR describes is live. None of this changes the
+> status of the ADR: the decision is still the owner's.
+
 ## Decision
 
 **Proposed, not yet accepted:** keep the `409` contract for now, because it is

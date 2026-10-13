@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Keeps authentication data on this device.
@@ -23,14 +24,35 @@ abstract interface class AuthLocalDataSource {
 /// HTTPS or on localhost. Nothing a web page stores for itself is out of reach of
 /// a script injected into that same page, so on web this raises the bar rather
 /// than closing the door (see docs/adr/0005).
+///
+/// **On iOS the Keychain item is `first_unlock_this_device`.** The package's
+/// default, `unlocked`, is restored from an encrypted backup onto a new phone,
+/// so a session token could travel to a device that is not its owner's. The
+/// `_this_device` variants never leave the phone. `first_unlock` (rather than
+/// `unlocked`) keeps the item readable after the first unlock since boot, so
+/// background work can use the token later. Keychain items also survive an
+/// uninstall; clearing them on a fresh install is part of ADR-0007. macOS is not
+/// a target of this app, so its options are left at the package default.
 class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   /// Creates the data source.
   ///
-  /// [storage] defaults to the real secure store; it is a parameter so a test
-  /// can hand in one backed by memory.
-  const AuthLocalDataSourceImpl({this._storage = const FlutterSecureStorage()});
+  /// [storage] defaults to the real secure store, configured with
+  /// [defaultIOSOptions]; it is a parameter so a test can hand in one backed by
+  /// memory.
+  const AuthLocalDataSourceImpl({
+    this._storage = const FlutterSecureStorage(iOptions: defaultIOSOptions),
+  });
 
   final FlutterSecureStorage _storage;
+
+  /// The iOS Keychain options of the default store.
+  ///
+  /// Public only so a test can pin the accessibility: the storage instance is
+  /// private and its options cannot be observed from outside.
+  @visibleForTesting
+  static const defaultIOSOptions = IOSOptions(
+    accessibility: KeychainAccessibility.first_unlock_this_device,
+  );
 
   /// The key the token is stored under.
   static const tokenKey = 'auth_token';

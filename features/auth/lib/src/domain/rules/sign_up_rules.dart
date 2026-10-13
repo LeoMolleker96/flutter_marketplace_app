@@ -1,3 +1,5 @@
+import 'email_rule.dart';
+
 /// One condition a new password must satisfy.
 ///
 /// Each is a case of its own, rather than a single "is this password strong"
@@ -47,13 +49,10 @@ abstract final class SignUpRules {
   /// The shortest password the app accepts.
   static const minPasswordLength = 8;
 
-  // Deliberately loose: something, an @, something, a dot, something. A
-  // stricter pattern rejects real addresses; whether the mailbox exists is for
-  // the server to find out.
-  static final _email = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-
   /// Whether [email] looks like an address. Surrounding spaces are ignored.
-  static bool isValidEmail(String email) => _email.hasMatch(email.trim());
+  ///
+  /// Delegates to [EmailRule], which sign-in shares.
+  static bool isValidEmail(String email) => EmailRule.isValid(email);
 
   /// The requirements [password] does not satisfy yet, in display order.
   static List<PasswordRequirement> unmetRequirements(String password) => [

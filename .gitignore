@@ -124,3 +124,10 @@ app.*.symbols
 
 # FVM Version Cache
 .fvm/
+
+# Environment and secret configuration (never commit; see CLAUDE.md §11 / ADR-0010)
+.env
+.env.*
+!.env.example
+dart_defines/
+*.dart_defines.json

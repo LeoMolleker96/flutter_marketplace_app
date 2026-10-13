@@ -2,6 +2,8 @@ import 'package:feature_auth/feature_auth.dart';
 import 'package:feature_listings/feature_listings.dart';
 import 'package:go_router/go_router.dart';
 
+import 'not_found_view.dart';
+
 /// Every route path in the app, in one place.
 ///
 /// These strings are real URLs on web, so they are part of the app's public
@@ -28,6 +30,11 @@ abstract final class AppRoutes {
 /// into the next.
 GoRouter createAppRouter() {
   return GoRouter(
+    // go_router's default error page prints the requested URL and the
+    // exception, so a crafted link could put attacker-written text on screen.
+    // This page is fixed copy and never receives either.
+    errorBuilder: (context, state) =>
+        NotFoundView(onGoHome: () => context.go(AppRoutes.signIn)),
     routes: [
       GoRoute(
         path: AppRoutes.signIn,

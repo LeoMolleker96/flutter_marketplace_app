@@ -17,6 +17,18 @@
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
+
+  <!--
+    Content Security Policy (ADR-0011). Scripts, including CanvasKit, may only
+    come from our own origin, so a third-party script cannot read the session
+    token that lives in localStorage. `connect-src` lists the API origin; the
+    production one is added with flavors (v0.6). `frame-ancestors` is ignored in
+    a <meta> policy, so it must be an HTTP header set by the host.
+    The sha256 hash allows only the debug server's injected DWDS client script
+    (Flutter 3.47.5), see ADR-0011.
+  -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'sha256-MndvH2xoJITJx1vAmJTo0n71uGBofeMZfQTpl28Jz7s='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' http://localhost:3000; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
+
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="Marketplace like app used to learn rivepord state management and advanced flutter concepts.">
 

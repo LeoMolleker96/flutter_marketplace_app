@@ -25,20 +25,17 @@ class _PasswordRequirements extends StatelessWidget {
   static String _labelFor(PasswordRequirement requirement) {
     return switch (requirement) {
       PasswordRequirement.minLength =>
-        'Mínimo ${SignUpRules.minPasswordLength} caracteres',
-      PasswordRequirement.uppercase => 'Una letra mayúscula',
-      PasswordRequirement.number => 'Un número',
-      PasswordRequirement.symbol => 'Un símbolo, como ! ? # @',
+        'At least ${SignUpRules.minPasswordLength} characters',
+      PasswordRequirement.uppercase => 'One uppercase letter',
+      PasswordRequirement.number => 'One number',
+      PasswordRequirement.symbol => 'One symbol, like ! ? # @',
     };
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(
-        left: AppSpacing.xs,
-        top: AppSpacing.sm,
-      ),
+      padding: const EdgeInsets.only(left: AppSpacing.xs, top: AppSpacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -70,7 +67,7 @@ class _RequirementRow extends StatelessWidget {
       // One announcement per line, with the state in words, instead of an icon
       // and a text read separately and the colour lost.
       child: Semantics(
-        label: '$label: ${isMet ? 'cumplido' : 'pendiente'}',
+        label: '$label: ${isMet ? 'met' : 'pending'}',
         excludeSemantics: true,
         child: Row(
           children: [

@@ -10,13 +10,13 @@
 /// not override `toString`: the default prints only the type name.
 class SignInParams {
   /// Creates the credentials for one sign-in attempt.
-  const SignInParams({required this.username, required this.password});
+  const SignInParams({required this.email, required this.password});
 
-  /// What the user typed into the identifier field.
+  /// The email the user signs in with.
   ///
-  /// The form accepts an email address or a username, so despite the name this
-  /// may be an email.
-  final String username;
+  /// Already trimmed by the caller, unlike [password]: surrounding spaces in an
+  /// address are a typing slip, and the server does not trim them itself.
+  final String email;
 
   /// The password exactly as typed — never trimmed, since spaces are valid.
   final String password;

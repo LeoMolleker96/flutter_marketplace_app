@@ -47,6 +47,24 @@ it is needed:
 6. The `401` ambiguity is settled by marking the auth endpoints as exempt from
    the `onUnauthorized` report, and by resetting the one-shot latch whenever a
    new session starts.
+7. **iOS Keychain.** The token's Keychain item uses `first_unlock_this_device`
+   (done in `AuthLocalDataSourceImpl`, ADR-0005 point 7), so it is readable
+   after the first unlock since boot and is never restored onto another phone.
+   Keychain items, however, **survive an uninstall**: restoring a session would
+   sign the next person in as the previous user. So the session restore must
+   clear the stored credentials on the first launch after a fresh install. That
+   needs a "has launched" flag kept *outside* the Keychain, which means a
+   dependency such as `shared_preferences`; it is decided with its own ADR when
+   this one is implemented.
+
+### Backend gaps found by the contract check (2026-10-13)
+
+The API (`../marketplace_api`) issues a 1-hour HS256 JWT with no refresh token,
+has no `GET /me`, and has no auth middleware, so no `Authorization` scheme is
+verified yet. `Authorization: Bearer <jwt>` is the natural fit. Sign-out is
+local-only, because JWTs are stateless: clearing the stored token is all it can
+do. Each of these is a decision for the owner and for the API project's own
+session, not for this one.
 
 ## Alternatives considered
 

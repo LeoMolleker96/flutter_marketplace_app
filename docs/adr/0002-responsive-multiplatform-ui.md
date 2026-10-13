@@ -20,7 +20,7 @@ The project also needs a rule about *where* responsive logic is allowed to live,
 
 **1. One codebase, adaptive at runtime.** No separate web build or web-specific fork.
 
-**2. Layout decisions are driven by available window space**, read through `LayoutBuilder` constraints or `MediaQuery.sizeOf`, classified by the **Material 3 window size classes**: compact `<600`, medium `600–839`, expanded `840–1199`, large `1200–1599`, extra-large `≥1600`. Breakpoints are declared once in `core/`.
+**2. Layout decisions are driven by available window space**, read through `LayoutBuilder` constraints or `MediaQuery.sizeOf`, classified by the **Material 3 window size classes**: compact `<600`, medium `600–839`, expanded `840–1199`, large `1200–1599`, extra-large `≥1600`. Breakpoints are declared once in `core/`. *(Amended by ADR-0009: breakpoints live in `design_system`.)*
 
 **3. Responsive logic is confined to the presentation layer.** Views know the size class; **view models never do**. No `isTablet` flag on a notifier, no width-dependent data. The invariant: resizing the window must never rebuild a view model or refetch data.
 

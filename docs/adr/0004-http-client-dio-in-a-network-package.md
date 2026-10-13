@@ -41,6 +41,18 @@ connection and then says nothing leaves a spinner running forever.
 passes the exception on.** Its request body carries the user's password; the
 failure's `cause` keeps only the kind, status and endpoint.
 
+> **Amendment (2026-10-13): dio is not hidden.** This ADR first claimed that
+> which HTTP library sits underneath "stays the package's business" and that
+> swapping it "touches one package". Neither is true. dio's types (`Dio`,
+> `DioException`, `DioExceptionType`) are part of `network`'s effective public
+> API through the re-export, and feature data layers use them directly
+> (`AuthRemoteDataSourceImpl`, `AuthRepositoryImpl`, `RequestFailureCause`).
+> Replacing dio would touch every feature's data layer, not just `network`.
+> "One client" is a convention the package makes easy, not something it
+> enforces: a feature that depended on dio itself would not be stopped by
+> anything but review. What the package does give is one place for the
+> interceptor, the timeouts and the base URL.
+
 ## Alternatives considered
 
 ### The `http` package
@@ -73,8 +85,8 @@ failure's `cause` keeps only the kind, status and endpoint.
 ## Consequences
 
 **Positive** — one client, one place for cross-cutting request behaviour;
-features cannot disagree about timeouts; swapping the HTTP library touches one
-package; the package is small enough to test completely (14 tests today).
+features cannot disagree about timeouts (as long as they use the shared client;
+see the amendment above); the package is small enough to test completely (14 tests today).
 
 **Negative** — a package to maintain for one function; dio's types leak through
 the re-export, so "ignorant of dio" is true of the features' *imports*, not of

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:network/network.dart';
 
-import '../helpers/fake_adapter.dart';
+import '../helpers/mock_http_client_adapter.dart';
 
 void main() {
   test('uses the base URL it is given', () {
@@ -14,13 +14,16 @@ void main() {
   });
 
   test('builds requests against that base URL', () async {
-    final adapter = FakeAdapter.always(200);
+    final adapter = stubAdapterAlways(200);
     final dio = createDio(baseUrl: 'https://api.test', onUnauthorized: () {});
     dio.httpClientAdapter = adapter;
 
     await dio.get<void>('/listings');
 
-    expect(adapter.requests.single.uri.toString(), 'https://api.test/listings');
+    expect(
+      sentRequests(adapter).single.uri.toString(),
+      'https://api.test/listings',
+    );
   });
 
   group('timeouts', () {

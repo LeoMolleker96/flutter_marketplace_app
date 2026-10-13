@@ -1,5 +1,5 @@
 name: feature_auth
-description: "Authentication feature: sign-in and, later, registration."
+description: "Authentication feature: sign-in and sign-up."
 publish_to: none
 version: 0.1.0
 resolution: workspace
@@ -28,6 +28,9 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+
+  # Test doubles (CLAUDE.md section 8): mocks are written with mocktail, never by hand.
+  mocktail: ^1.0.5
 
   # Code generation for @riverpod; generated .g.dart files are committed.
   build_runner: ^2.16.1
